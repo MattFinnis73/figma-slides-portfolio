@@ -30,6 +30,7 @@ export function FigmaViewer({ isOpen, onClose, projectTitle, figmaUrl }: FigmaVi
           src={figmaUrl}
           className="h-[calc(95vh-73px)] w-full rounded-b-2xl border-0"
           allowFullScreen
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           title={projectTitle}
         />
       </div>
