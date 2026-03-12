@@ -223,17 +223,24 @@ export default function App() {
     try {
       const url = `https://${projectId}.supabase.co/functions/v1/make-server-44157e71/projects/load/${id}`;
       
+      console.log('Loading portfolio from:', url);
+      
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${publicAnonKey}`,
         },
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to load portfolio');
+        const errorText = await response.text();
+        console.error('Server error response:', errorText);
+        throw new Error(`Failed to load portfolio: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Loaded portfolio data:', data);
       
       setProjects(data.projects);
       setSiteTitle(data.siteTitle);
@@ -241,7 +248,7 @@ export default function App() {
       setPortfolioId(id);
     } catch (error) {
       console.error('Error loading portfolio:', error);
-      alert('Failed to load portfolio. Please check the URL and try again.');
+      setLoadError(`Failed to load portfolio: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
