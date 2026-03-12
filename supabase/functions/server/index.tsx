@@ -129,8 +129,8 @@ app.get("/make-server-44157e71/projects/load/:portfolioId", async (c) => {
       const slideUrls = [];
       
       for (const slide of project.slides) {
-        // If it's a storage path, generate signed URL
-        if (slide.includes('/')) {
+        // If it's a storage path (not starting with http), generate signed URL
+        if (!slide.startsWith('http://') && !slide.startsWith('https://') && !slide.startsWith('data:')) {
           const { data, error } = await supabase.storage
             .from(BUCKET_NAME)
             .createSignedUrl(slide, 3600); // 1 hour expiry
@@ -139,9 +139,10 @@ app.get("/make-server-44157e71/projects/load/:portfolioId", async (c) => {
             slideUrls.push(data.signedUrl);
           } else {
             console.error('Error creating signed URL:', error);
+            // If error, skip this slide rather than breaking
           }
         } else {
-          // External URL
+          // External URL or data URL - use as-is
           slideUrls.push(slide);
         }
       }
