@@ -58,50 +58,8 @@ app.post("/make-server-44157e71/projects/save", async (c) => {
       updatedAt: new Date().toISOString(),
     });
 
-    // Save each project and upload slides to storage
-    const savedProjects = [];
-    for (const project of projects) {
-      const slideUrls = [];
-      
-      // Upload each slide to Supabase Storage
-      for (let i = 0; i < project.slides.length; i++) {
-        const slide = project.slides[i];
-        
-        // If it's a data URL, upload it
-        if (slide.startsWith('data:')) {
-          const base64Data = slide.split(',')[1];
-          const buffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
-          const fileName = `${portfolioId}/project-${project.id}/slide-${i}.jpg`;
-          
-          const { error } = await supabase.storage
-            .from(BUCKET_NAME)
-            .upload(fileName, buffer, {
-              contentType: 'image/jpeg',
-              upsert: true,
-            });
-          
-          if (error) {
-            console.error('Error uploading slide:', error);
-            continue;
-          }
-          
-          slideUrls.push(fileName);
-        } else {
-          // Keep external URLs as-is
-          slideUrls.push(slide);
-        }
-      }
-      
-      savedProjects.push({
-        id: project.id,
-        title: project.title,
-        description: project.description,
-        slides: slideUrls,
-      });
-    }
-
-    // Save projects to KV store
-    await kv.set(`portfolio:${portfolioId}:projects`, savedProjects);
+    // Save projects directly (no storage needed for Figma URLs)
+    await kv.set(`portfolio:${portfolioId}:projects`, projects);
 
     return c.json({ success: true, portfolioId });
   } catch (error) {
@@ -123,41 +81,11 @@ app.get("/make-server-44157e71/projects/load/:portfolioId", async (c) => {
       return c.json({ error: 'Portfolio not found' }, 404);
     }
 
-    // Generate signed URLs for stored slides
-    const projectsWithUrls = [];
-    for (const project of projects) {
-      const slideUrls = [];
-      
-      for (const slide of project.slides) {
-        // If it's a storage path (not starting with http), generate signed URL
-        if (!slide.startsWith('http://') && !slide.startsWith('https://') && !slide.startsWith('data:')) {
-          const { data, error } = await supabase.storage
-            .from(BUCKET_NAME)
-            .createSignedUrl(slide, 3600); // 1 hour expiry
-          
-          if (!error && data) {
-            slideUrls.push(data.signedUrl);
-          } else {
-            console.error('Error creating signed URL:', error);
-            // If error, skip this slide rather than breaking
-          }
-        } else {
-          // External URL or data URL - use as-is
-          slideUrls.push(slide);
-        }
-      }
-      
-      projectsWithUrls.push({
-        ...project,
-        slides: slideUrls,
-      });
-    }
-
     return c.json({
       success: true,
       siteTitle: meta?.siteTitle || 'My Figma Slides',
       siteDescription: meta?.siteDescription || 'A showcase of my design work',
-      projects: projectsWithUrls,
+      projects: projects,
     });
   } catch (error) {
     console.error('Error loading projects:', error);

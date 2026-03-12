@@ -1,22 +1,24 @@
 import { SlideCard } from './components/SlideCard';
-import { SlideViewer } from './components/SlideViewer';
-import { PDFUploader } from './components/PDFUploader';
-import { useState, useEffect } from 'react';
-import { Upload, Pencil, Check, Share2, ExternalLink } from 'lucide-react';
+import { FigmaViewer } from './components/FigmaViewer';
+import { useState, useEffect, useRef } from 'react';
+import { Link as LinkIcon, Pencil, Check, Share2, ExternalLink, X, Upload } from 'lucide-react';
 import { projectId, publicAnonKey } from '/utils/supabase/info.tsx';
 
 interface Project {
   id: number;
   title: string;
   description: string;
-  slides: string[];
+  figmaUrl: string;
+  thumbnailUrl: string;
 }
 
 export default function App() {
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [showUploader, setShowUploader] = useState(false);
+  const [showProjectEditor, setShowProjectEditor] = useState(false);
   const [editingProject, setEditingProject] = useState<number | null>(null);
+  const [tempFigmaUrl, setTempFigmaUrl] = useState('');
+  const [tempThumbnailUrl, setTempThumbnailUrl] = useState('');
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const [siteTitle, setSiteTitle] = useState('My Figma Slides');
   const [siteDescription, setSiteDescription] = useState('A showcase of my design work');
@@ -36,64 +38,48 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>([
     {
       id: 1,
-      title: 'Driving Quality at Scale',
-      description: 'THG/UX Presentation',
-      slides: [
-        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
-      ]
+      title: 'Project 1',
+      description: 'Your first project presentation',
+      figmaUrl: '',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080'
     },
     {
       id: 2,
       title: 'Project 2',
       description: 'Your second project presentation',
-      slides: [
-        'https://images.unsplash.com/photo-1629494893504-d41e26a02631?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ24lMjBtb2NrdXAlMjBzY3JlZW58ZW58MXx8fHwxNzczMjA2NjgwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      ]
+      figmaUrl: '',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1629494893504-d41e26a02631?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkZXNpZ24lMjBtb2NrdXAlMjBzY3JlZW58ZW58MXx8fHwxNzczMjA2NjgwfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
     },
     {
       id: 3,
       title: 'Project 3',
       description: 'Your third project presentation',
-      slides: [
-        'https://images.unsplash.com/photo-1559028012-481c04fa702d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwaW50ZXJmYWNlJTIwZGVzaWdufGVufDF8fHx8MTc3MzE5NzMzMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      ]
+      figmaUrl: '',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWJzaXRlJTIwaW50ZXJmYWNlJTIwZGVzaWdufGVufDF8fHx8MTc3MzE5NzMzMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
     },
     {
       id: 4,
       title: 'Project 4',
       description: 'Your fourth project presentation',
-      slides: [
-        'https://images.unsplash.com/photo-1569766670290-f5581d3bb53f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwcG9ydGZvbGlvJTIwbGF5b3V0fGVufDF8fHx8MTc3MzI5ODYyMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
-      ]
+      figmaUrl: '',
+      thumbnailUrl: 'https://images.unsplash.com/photo-1569766670290-f5581d3bb53f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwcG9ydGZvbGlvJTIwbGF5b3V0fGVufDF8fHx8MTc3MzI5ODYyMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'
     }
   ]);
-
-  // Add console log immediately when component mounts
-  console.log('App component mounting...');
-  console.log('Current URL:', window.location.href);
-  console.log('Search params:', window.location.search);
 
   // Load from localStorage on mount
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        console.log('Initializing app...');
-        
-        // Check if we're viewing a shared portfolio from URL
         const urlParams = new URLSearchParams(window.location.search);
         const sharedPortfolioId = urlParams.get('id');
 
-        console.log('Shared portfolio ID from URL:', sharedPortfolioId);
-
         if (sharedPortfolioId) {
-          // We're in view mode - load from server
-          console.log('Entering view mode, loading from server...');
+          // View mode - load from server
           setIsViewMode(true);
           setIsLoading(true);
           await loadPortfolioFromServer(sharedPortfolioId);
         } else {
-          // We're in edit mode - load from localStorage
-          console.log('Entering edit mode, loading from localStorage...');
+          // Edit mode - load from localStorage
           const savedProjects = localStorage.getItem('figmaSlides_projects');
           const savedSiteTitle = localStorage.getItem('figmaSlides_siteTitle');
           const savedSiteDescription = localStorage.getItem('figmaSlides_siteDescription');
@@ -101,28 +87,19 @@ export default function App() {
 
           if (savedProjects) {
             try {
-              const parsed = JSON.parse(savedProjects);
-              console.log('Loaded projects from localStorage:', parsed);
-              setProjects(parsed);
+              setProjects(JSON.parse(savedProjects));
             } catch (e) {
               console.error('Failed to load projects from localStorage', e);
             }
           }
 
-          if (savedSiteTitle) {
-            setSiteTitle(savedSiteTitle);
-          }
-
-          if (savedSiteDescription) {
-            setSiteDescription(savedSiteDescription);
-          }
+          if (savedSiteTitle) setSiteTitle(savedSiteTitle);
+          if (savedSiteDescription) setSiteDescription(savedSiteDescription);
 
           if (savedPortfolioId) {
             setPortfolioId(savedPortfolioId);
           } else {
-            // Generate a new portfolio ID
             const newId = 'portfolio-' + Math.random().toString(36).substring(2, 15);
-            console.log('Generated new portfolio ID:', newId);
             setPortfolioId(newId);
             localStorage.setItem('figmaSlides_portfolioId', newId);
           }
@@ -137,83 +114,64 @@ export default function App() {
     initializeApp();
   }, []);
 
-  // Save to localStorage whenever projects change
+  // Save to localStorage
   useEffect(() => {
-    // Save all projects including data URLs
-    try {
-      localStorage.setItem('figmaSlides_projects', JSON.stringify(projects));
-    } catch (e) {
-      console.error('Failed to save to localStorage:', e);
-      // If storage fails due to quota (large PDFs), user will need to re-upload after refresh
-      // But they can always publish to save permanently
-    }
+    localStorage.setItem('figmaSlides_projects', JSON.stringify(projects));
   }, [projects]);
 
-  // Save site title to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('figmaSlides_siteTitle', siteTitle);
   }, [siteTitle]);
 
-  // Save site description to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('figmaSlides_siteDescription', siteDescription);
   }, [siteDescription]);
 
-  const handleProjectClick = (projectId: number) => {
-    setSelectedProject(projectId);
-    setCurrentSlideIndex(0);
-  };
-
-  const handlePrevious = () => {
-    if (currentSlideIndex > 0) {
-      setCurrentSlideIndex(currentSlideIndex - 1);
-    }
-  };
-
-  const handleNext = () => {
-    const currentProject = projects.find(p => p.id === selectedProject);
-    if (currentProject && currentSlideIndex < currentProject.slides.length - 1) {
-      setCurrentSlideIndex(currentSlideIndex + 1);
+  const handleProjectClick = (project: Project) => {
+    if (project.figmaUrl) {
+      setSelectedProject(project.id);
     }
   };
 
   const handleClose = () => {
     setSelectedProject(null);
-    setCurrentSlideIndex(0);
   };
 
-  const handleUploadClick = (projectId: number) => {
-    setEditingProject(projectId);
-    setShowUploader(true);
-  };
-
-  const handlePDFLoad = (pages: string[]) => {
-    console.log('handlePDFLoad called with pages:', pages.length, 'editingProject:', editingProject);
-    if (editingProject !== null) {
-      setProjects(prevProjects => {
-        const updatedProjects = prevProjects.map(project =>
-          project.id === editingProject
-            ? { ...project, slides: pages }
-            : project
-        );
-        console.log('Updated projects state:', updatedProjects);
-        return updatedProjects;
-      });
-      // Don't auto-close the modal - let user close it manually to see the update
-      alert(`PDF uploaded! ${pages.length} slides added to project ${editingProject}`);
-    } else {
-      console.error('editingProject is null! Cannot update slides.');
+  const handleEditProject = (projectId: number) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setEditingProject(projectId);
+      setTempFigmaUrl(project.figmaUrl || '');
+      setTempThumbnailUrl(project.thumbnailUrl || '');
+      setShowProjectEditor(true);
     }
   };
 
-  const handleRemovePDF = (projectId: number) => {
-    setProjects(prevProjects =>
-      prevProjects.map(project =>
-        project.id === projectId
-          ? { ...project, slides: [] }
-          : project
-      )
-    );
+  const handleSaveProject = () => {
+    if (editingProject !== null) {
+      setProjects(prevProjects =>
+        prevProjects.map(project =>
+          project.id === editingProject
+            ? { ...project, figmaUrl: tempFigmaUrl, thumbnailUrl: tempThumbnailUrl }
+            : project
+        )
+      );
+      setShowProjectEditor(false);
+      setEditingProject(null);
+      setTempFigmaUrl('');
+      setTempThumbnailUrl('');
+    }
+  };
+
+  const handleThumbnailUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setTempThumbnailUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleTitleChange = (projectId: number, newTitle: string) => {
@@ -221,16 +179,6 @@ export default function App() {
       prevProjects.map(project =>
         project.id === projectId
           ? { ...project, title: newTitle }
-          : project
-      )
-    );
-  };
-
-  const handleDescriptionChange = (projectId: number, newDescription: string) => {
-    setProjects(prevProjects =>
-      prevProjects.map(project =>
-        project.id === projectId
-          ? { ...project, description: newDescription }
           : project
       )
     );
@@ -273,26 +221,19 @@ export default function App() {
   const loadPortfolioFromServer = async (id: string) => {
     setIsLoading(true);
     try {
-      console.log('Loading portfolio from server with ID:', id);
       const url = `https://${projectId}.supabase.co/functions/v1/make-server-44157e71/projects/load/${id}`;
-      console.log('Fetching from URL:', url);
       
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${publicAnonKey}`,
         },
       });
-
-      console.log('Response status:', response.status);
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server error response:', errorText);
         throw new Error('Failed to load portfolio');
       }
 
       const data = await response.json();
-      console.log('Loaded data from server:', data);
       
       setProjects(data.projects);
       setSiteTitle(data.siteTitle);
@@ -301,8 +242,6 @@ export default function App() {
     } catch (error) {
       console.error('Error loading portfolio:', error);
       alert('Failed to load portfolio. Please check the URL and try again.');
-      // Show default content instead of blank page
-      setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -311,14 +250,7 @@ export default function App() {
   const handlePublish = async () => {
     setIsSaving(true);
     try {
-      console.log('Publishing portfolio...');
-      console.log('Portfolio ID:', portfolioId);
-      console.log('Projects:', projects);
-      console.log('Site Title:', siteTitle);
-      console.log('Site Description:', siteDescription);
-      
       const apiUrl = `https://${projectId}.supabase.co/functions/v1/make-server-44157e71/projects/save`;
-      console.log('Publishing to URL:', apiUrl);
       
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -334,23 +266,13 @@ export default function App() {
         }),
       });
 
-      console.log('Publish response status:', response.status);
-      const responseText = await response.text();
-      console.log('Publish response text:', responseText);
-
       if (!response.ok) {
-        throw new Error(`Failed to save portfolio: ${responseText}`);
+        throw new Error('Failed to save portfolio');
       }
-
-      const data = JSON.parse(responseText);
-      console.log('Publish response data:', data);
       
-      // Save portfolio ID to localStorage
       localStorage.setItem('figmaSlides_portfolioId', portfolioId);
       
-      // Generate share URL
       const shareLink = `${window.location.origin}${window.location.pathname}?id=${portfolioId}`;
-      console.log('Generated share URL:', shareLink);
       setShareUrl(shareLink);
       setShowShareModal(true);
       
@@ -364,11 +286,6 @@ export default function App() {
   };
 
   const copyShareUrl = () => {
-    // Use fallback method directly since Clipboard API is blocked in this environment
-    fallbackCopyToClipboard();
-  };
-
-  const fallbackCopyToClipboard = () => {
     const textArea = document.createElement('textarea');
     textArea.value = shareUrl;
     textArea.style.position = 'fixed';
@@ -394,7 +311,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 py-12 px-4 sm:px-6 lg:px-8">
       {loadError ? (
         <div className="flex min-h-screen items-center justify-center">
           <div className="max-w-md rounded-lg bg-white p-8 shadow-lg text-center">
@@ -418,7 +335,7 @@ export default function App() {
         </div>
       ) : (
         <div className="mx-auto max-w-7xl">
-          {/* Header with Publish Button - only show in edit mode */}
+          {/* Header with Publish Button */}
           {!isViewMode && (
             <div className="mb-8 flex items-center justify-between">
               <div className="flex-1"></div>
@@ -529,33 +446,41 @@ export default function App() {
               <div key={project.id} className="space-y-4">
                 <SlideCard
                   title={project.title}
-                  imageUrl={project.slides[0] || 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=1080'}
-                  onClick={() => project.slides.length > 0 && handleProjectClick(project.id)}
+                  imageUrl={project.thumbnailUrl}
+                  onClick={() => handleProjectClick(project)}
                   onTitleChange={(newTitle) => handleTitleChange(project.id, newTitle)}
                   isViewMode={isViewMode}
                 />
                 <div className="px-2">
                   {!isViewMode && (
                     <>
-                      {project.slides.length === 0 ? (
+                      {!project.figmaUrl ? (
                         <button
-                          onClick={() => handleUploadClick(project.id)}
+                          onClick={() => handleEditProject(project.id)}
                           className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-sm text-gray-600 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
                         >
-                          <Upload className="size-5" />
-                          <span>Upload PDF</span>
+                          <LinkIcon className="size-5" />
+                          <span>Add Figma URL</span>
                         </button>
                       ) : (
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUploadClick(project.id)}
+                            onClick={() => handleEditProject(project.id)}
                             className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm text-blue-700 transition-all hover:bg-blue-100"
                           >
-                            <Upload className="size-4" />
-                            Replace PDF
+                            <Pencil className="size-4" />
+                            Edit Project
                           </button>
                           <button
-                            onClick={() => handleRemovePDF(project.id)}
+                            onClick={() => {
+                              setProjects(prev =>
+                                prev.map(p =>
+                                  p.id === project.id
+                                    ? { ...p, figmaUrl: '' }
+                                    : p
+                                )
+                              );
+                            }}
                             className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 transition-all hover:bg-red-100"
                           >
                             Remove
@@ -571,37 +496,102 @@ export default function App() {
         </div>
       )}
 
-      {/* PDF Upload Modal */}
-      {showUploader && editingProject !== null && (
+      {/* Project Editor Modal */}
+      {showProjectEditor && editingProject !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">
-              Upload PDF for {projects.find(p => p.id === editingProject)?.title}
-            </h2>
-            <PDFUploader onPDFLoad={handlePDFLoad} />
-            <button
-              onClick={() => {
-                setShowUploader(false);
-                setEditingProject(null);
-              }}
-              className="mt-4 w-full rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200"
-            >
-              Cancel
-            </button>
+          <div className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Edit {projects.find(p => p.id === editingProject)?.title}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowProjectEditor(false);
+                  setEditingProject(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="size-6" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Figma Prototype URL
+                </label>
+                <input
+                  type="url"
+                  value={tempFigmaUrl}
+                  onChange={(e) => setTempFigmaUrl(e.target.value)}
+                  placeholder="https://www.figma.com/proto/..."
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Paste your Figma prototype share link
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-gray-700">
+                  Thumbnail Image
+                </label>
+                <div className="space-y-2">
+                  {tempThumbnailUrl && (
+                    <div className="overflow-hidden rounded-lg border border-gray-200">
+                      <img
+                        src={tempThumbnailUrl}
+                        alt="Thumbnail preview"
+                        className="h-48 w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    ref={thumbnailInputRef}
+                    onChange={handleThumbnailUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => thumbnailInputRef.current?.click()}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Upload className="size-4" />
+                    {tempThumbnailUrl ? 'Change Thumbnail' : 'Upload Thumbnail'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={handleSaveProject}
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setShowProjectEditor(false);
+                  setEditingProject(null);
+                }}
+                className="flex-1 rounded-lg bg-gray-100 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Slide Viewer Modal */}
-      {currentProject && currentProject.slides.length > 0 && (
-        <SlideViewer
+      {/* Figma Viewer Modal */}
+      {currentProject && currentProject.figmaUrl && (
+        <FigmaViewer
           isOpen={selectedProject !== null}
           onClose={handleClose}
           projectTitle={currentProject.title}
-          slides={currentProject.slides}
-          currentSlideIndex={currentSlideIndex}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
+          figmaUrl={currentProject.figmaUrl}
         />
       )}
 
