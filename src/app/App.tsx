@@ -2,7 +2,6 @@ import { SlideCard } from './components/SlideCard';
 import { SlideViewer } from './components/SlideViewer';
 import { PDFUploader } from './components/PDFUploader';
 import { useState, useEffect } from 'react';
-import slide1Image from 'figma:asset/7c7624895ce832c65c336ff7e62398219f9b4bc7.png';
 import { Upload, Pencil, Check, Share2, ExternalLink } from 'lucide-react';
 import { projectId, publicAnonKey } from '/utils/supabase/info.tsx';
 
@@ -40,7 +39,7 @@ export default function App() {
       title: 'Driving Quality at Scale',
       description: 'THG/UX Presentation',
       slides: [
-        slide1Image,
+        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080',
       ]
     },
     {
