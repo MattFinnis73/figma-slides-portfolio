@@ -538,6 +538,9 @@ export default function App() {
                 <p className="mt-1 text-xs text-gray-500">
                   💡 Use the embed URL: In Figma, click Share → Get embed code → Copy the URL from the iframe src
                 </p>
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ Note: Videos in Figma embeds may have limited playback. Consider using prototype links or GIF alternatives for videos.
+                </p>
               </div>
 
               <div>
