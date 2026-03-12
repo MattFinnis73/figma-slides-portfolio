@@ -11,8 +11,8 @@ export function FigmaViewer({ isOpen, onClose, projectTitle, figmaUrl }: FigmaVi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
-      <div className="relative h-[90vh] w-full max-w-7xl rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4">
+      <div className="relative h-[95vh] w-full max-w-[95vw] rounded-2xl bg-white shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
           <h2 className="text-2xl font-bold text-gray-900">{projectTitle}</h2>
@@ -28,9 +28,8 @@ export function FigmaViewer({ isOpen, onClose, projectTitle, figmaUrl }: FigmaVi
         {/* Figma Embed */}
         <iframe
           src={figmaUrl}
-          className="h-[calc(90vh-73px)] w-full rounded-b-2xl"
+          className="h-[calc(95vh-73px)] w-full rounded-b-2xl border-0"
           allowFullScreen
-          allow="fullscreen"
           title={projectTitle}
         />
       </div>

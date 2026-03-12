@@ -524,18 +524,19 @@ export default function App() {
             
             <div className="space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-700">
-                  Figma Prototype URL
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Figma Prototype URL *
                 </label>
                 <input
                   type="url"
                   value={tempFigmaUrl}
                   onChange={(e) => setTempFigmaUrl(e.target.value)}
-                  placeholder="https://www.figma.com/proto/..."
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://embed.figma.com/slides/..."
+                  required
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Paste your Figma prototype share link
+                  💡 Use the embed URL: In Figma, click Share → Get embed code → Copy the URL from the iframe src
                 </p>
               </div>
 
