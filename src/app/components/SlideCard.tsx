@@ -7,9 +7,10 @@ interface SlideCardProps {
   imageUrl: string;
   onClick: () => void;
   onTitleChange: (newTitle: string) => void;
+  isViewMode?: boolean;
 }
 
-export function SlideCard({ title, imageUrl, onClick, onTitleChange }: SlideCardProps) {
+export function SlideCard({ title, imageUrl, onClick, onTitleChange, isViewMode }: SlideCardProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState(title);
 
@@ -69,17 +70,19 @@ export function SlideCard({ title, imageUrl, onClick, onTitleChange }: SlideCard
           ) : (
             <>
               <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setTempTitle(title);
-                  setIsEditingTitle(true);
-                }}
-                className="ml-auto rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
-                aria-label="Edit title"
-              >
-                <Pencil className="size-4" />
-              </button>
+              {!isViewMode && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setTempTitle(title);
+                    setIsEditingTitle(true);
+                  }}
+                  className="ml-auto rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+                  aria-label="Edit title"
+                >
+                  <Pencil className="size-4" />
+                </button>
+              )}
             </>
           )}
         </div>

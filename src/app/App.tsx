@@ -468,16 +468,18 @@ export default function App() {
                 <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl">
                   {siteTitle}
                 </h1>
-                <button
-                  onClick={() => {
-                    setTempSiteTitle(siteTitle);
-                    setIsEditingSiteTitle(true);
-                  }}
-                  className="rounded p-2 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
-                  aria-label="Edit site title"
-                >
-                  <Pencil className="size-5" />
-                </button>
+                {!isViewMode && (
+                  <button
+                    onClick={() => {
+                      setTempSiteTitle(siteTitle);
+                      setIsEditingSiteTitle(true);
+                    }}
+                    className="rounded p-2 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+                    aria-label="Edit site title"
+                  >
+                    <Pencil className="size-5" />
+                  </button>
+                )}
               </div>
             )}
             
@@ -505,16 +507,18 @@ export default function App() {
                 <p className="text-lg text-gray-600">
                   {siteDescription}
                 </p>
-                <button
-                  onClick={() => {
-                    setTempSiteDescription(siteDescription);
-                    setIsEditingSiteDescription(true);
-                  }}
-                  className="rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
-                  aria-label="Edit site description"
-                >
-                  <Pencil className="size-4" />
-                </button>
+                {!isViewMode && (
+                  <button
+                    onClick={() => {
+                      setTempSiteDescription(siteDescription);
+                      setIsEditingSiteDescription(true);
+                    }}
+                    className="rounded p-1 text-gray-400 opacity-0 transition-opacity hover:bg-gray-100 hover:text-gray-600 group-hover:opacity-100"
+                    aria-label="Edit site description"
+                  >
+                    <Pencil className="size-4" />
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -528,32 +532,37 @@ export default function App() {
                   imageUrl={project.slides[0] || 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?q=80&w=1080'}
                   onClick={() => project.slides.length > 0 && handleProjectClick(project.id)}
                   onTitleChange={(newTitle) => handleTitleChange(project.id, newTitle)}
+                  isViewMode={isViewMode}
                 />
                 <div className="px-2">
-                  {project.slides.length === 0 ? (
-                    <button
-                      onClick={() => handleUploadClick(project.id)}
-                      className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-sm text-gray-600 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
-                    >
-                      <Upload className="size-5" />
-                      <span>Upload PDF</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleUploadClick(project.id)}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm text-blue-700 transition-all hover:bg-blue-100"
-                      >
-                        <Upload className="size-4" />
-                        Replace PDF
-                      </button>
-                      <button
-                        onClick={() => handleRemovePDF(project.id)}
-                        className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 transition-all hover:bg-red-100"
-                      >
-                        Remove
-                      </button>
-                    </div>
+                  {!isViewMode && (
+                    <>
+                      {project.slides.length === 0 ? (
+                        <button
+                          onClick={() => handleUploadClick(project.id)}
+                          className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-8 text-sm text-gray-600 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                        >
+                          <Upload className="size-5" />
+                          <span>Upload PDF</span>
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleUploadClick(project.id)}
+                            className="flex flex-1 items-center justify-center gap-2 rounded-lg border-2 border-blue-300 bg-blue-50 px-4 py-2 text-sm text-blue-700 transition-all hover:bg-blue-100"
+                          >
+                            <Upload className="size-4" />
+                            Replace PDF
+                          </button>
+                          <button
+                            onClick={() => handleRemovePDF(project.id)}
+                            className="rounded-lg border-2 border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700 transition-all hover:bg-red-100"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
