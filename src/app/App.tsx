@@ -1,8 +1,8 @@
+import { useState, useEffect } from 'react';
+import { Share2, Pencil, Check, Link as LinkIcon, X, Upload, ExternalLink } from 'lucide-react';
+import { ImageWithFallback } from './components/figma/ImageWithFallback';
 import { SlideCard } from './components/SlideCard';
-import { FigmaViewer } from './components/FigmaViewer';
-import { useState, useEffect, useRef } from 'react';
-import { Link as LinkIcon, Pencil, Check, Share2, ExternalLink, X, Upload } from 'lucide-react';
-import { projectId, publicAnonKey } from '/utils/supabase/info.tsx';
+import { projectId, publicAnonKey } from '/utils/supabase/info';
 
 interface Project {
   id: number;
@@ -13,12 +13,10 @@ interface Project {
 }
 
 export default function App() {
-  const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [showProjectEditor, setShowProjectEditor] = useState(false);
   const [editingProject, setEditingProject] = useState<number | null>(null);
   const [tempFigmaUrl, setTempFigmaUrl] = useState('');
   const [tempThumbnailUrl, setTempThumbnailUrl] = useState('');
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   const [siteTitle, setSiteTitle] = useState('My Figma Slides');
   const [siteDescription, setSiteDescription] = useState('A showcase of my design work');
@@ -129,12 +127,13 @@ export default function App() {
 
   const handleProjectClick = (project: Project) => {
     if (project.figmaUrl) {
-      setSelectedProject(project.id);
+      // Convert embed URL to regular Figma URL and open in new tab
+      let figmaUrl = project.figmaUrl;
+      if (figmaUrl.includes('embed.figma.com')) {
+        figmaUrl = figmaUrl.replace('embed.figma.com', 'www.figma.com').split('?')[0];
+      }
+      window.open(figmaUrl, '_blank', 'noopener,noreferrer');
     }
-  };
-
-  const handleClose = () => {
-    setSelectedProject(null);
   };
 
   const handleEditProject = (projectId: number) => {
@@ -183,8 +182,6 @@ export default function App() {
       )
     );
   };
-
-  const currentProject = selectedProject !== null ? projects.find(p => p.id === selectedProject) : null;
 
   const handleSiteTitleSave = () => {
     if (tempSiteTitle.trim()) {
@@ -559,13 +556,12 @@ export default function App() {
                   )}
                   <input
                     type="file"
-                    ref={thumbnailInputRef}
                     onChange={handleThumbnailUpload}
                     accept="image/*"
                     className="hidden"
                   />
                   <button
-                    onClick={() => thumbnailInputRef.current?.click()}
+                    onClick={() => document.querySelector('input[type="file"]')?.click()}
                     className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600 transition-all hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
                   >
                     <Upload className="size-4" />
@@ -594,16 +590,6 @@ export default function App() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Figma Viewer Modal */}
-      {currentProject && currentProject.figmaUrl && (
-        <FigmaViewer
-          isOpen={selectedProject !== null}
-          onClose={handleClose}
-          projectTitle={currentProject.title}
-          figmaUrl={currentProject.figmaUrl}
-        />
       )}
 
       {/* Share Modal */}
