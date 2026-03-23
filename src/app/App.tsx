@@ -17,7 +17,6 @@ export default function App() {
   const [editingProject, setEditingProject] = useState<number | null>(null);
   const [tempFigmaUrl, setTempFigmaUrl] = useState('');
   const [tempThumbnailUrl, setTempThumbnailUrl] = useState('');
-  const [viewingProject, setViewingProject] = useState<Project | null>(null);
 
   const [siteTitle, setSiteTitle] = useState('My Figma Slides');
   const [siteDescription, setSiteDescription] = useState('A showcase of my design work');
@@ -128,16 +127,8 @@ export default function App() {
 
   const handleProjectClick = (project: Project) => {
     if (project.figmaUrl) {
-      // Detect mobile devices
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        // On mobile, show iframe modal to avoid login redirect
-        setViewingProject(project);
-      } else {
-        // On desktop, open in new tab
-        window.open(project.figmaUrl, '_blank', 'noopener,noreferrer');
-      }
+      // Simply open the embed URL in a new tab - works on all devices
+      window.open(project.figmaUrl, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -645,32 +636,6 @@ export default function App() {
             >
               Close
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Figma Viewer Modal */}
-      {viewingProject && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-black">
-          <div className="flex items-center justify-between bg-gray-900 p-4">
-            <h2 className="text-lg font-semibold text-white">
-              {viewingProject.title}
-            </h2>
-            <button
-              onClick={() => setViewingProject(null)}
-              className="rounded-full bg-gray-700 p-2 text-white hover:bg-gray-600"
-              aria-label="Close viewer"
-            >
-              <X className="size-6" />
-            </button>
-          </div>
-          <div className="flex-1">
-            <iframe
-              src={viewingProject.figmaUrl}
-              className="h-full w-full border-0"
-              allowFullScreen
-              title={viewingProject.title}
-            />
           </div>
         </div>
       )}
